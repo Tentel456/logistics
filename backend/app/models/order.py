@@ -17,3 +17,4 @@ class OrderOut(OrderIn):
     id: str
     tracking_code: str
     status: OrderStatus
+    price: float

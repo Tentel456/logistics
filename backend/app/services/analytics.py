@@ -1,16 +1,18 @@
 from __future__ import annotations
-from ..db.memory import DB
-from ..models.enums import OrderStatus
+from collections import defaultdict
+from sqlmodel import Session, select
+
+from ..db.models import Order, Vehicle, Warehouse
 
 
-def overview():
-    total_orders = len(DB.orders)
-    by_status = {s.value: 0 for s in OrderStatus}
-    for o in DB.orders.values():
-        by_status[o["status"]] = by_status.get(o["status"], 0) + 1
+def overview(session: Session):
+    orders = session.exec(select(Order)).all()
+    by_status: dict[str, int] = defaultdict(int)
+    for o in orders:
+        by_status[o.status.value if hasattr(o.status, 'value') else str(o.status)] += 1
     return {
-        "total_orders": total_orders,
+        "total_orders": len(orders),
         "orders_by_status": by_status,
-        "vehicles": len(DB.vehicles),
-        "warehouses": len(DB.warehouses),
+        "vehicles": len(session.exec(select(Vehicle)).all()),
+        "warehouses": len(session.exec(select(Warehouse)).all()),
     }
